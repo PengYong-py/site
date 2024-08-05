@@ -16,7 +16,14 @@ export default defineConfig({
       { text: '规范',items: [
         { text: 'js', link: '/specification/js' },
         { text: 'css', link: '/specification/css' },
+      ]},
+      { text: '知识总结',items: [
+        { text: 'js', link: '/knowledge/js' },
+        { text: 'css', link: '/knowledge/css' },
+        { text: 'vue', link: '/knowledge/vue' },
+        { text: '管理', link: '/knowledge/manage' },
       ]}
+
     ],
     sidebar: {
       '/Infrastructure/': [
