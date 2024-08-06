@@ -1,5 +1,109 @@
 # vue相关
 
+## 生命周期
+Vue.js 提供了一系列的生命周期钩子（Lifecycle Hooks），让开发者可以在组件实例的不同阶段执行特定的代码。这些钩子函数覆盖了从组件创建到销毁的整个过程。
+
+### Vue 2.x 和 Vue 3.x 的生命周期钩子
+
+#### 创建阶段
+
+1. **`beforeCreate`**
+   - **触发时机**：实例刚创建之后，此时数据观测 (reactivity) 和事件机制尚未初始化。
+   - **用途**：可以在这里进行一些初始化工作，但无法访问 `data`、`computed`、`methods` 和 `watch` 等属性。
+
+2. **`created`**
+   - **触发时机**：实例创建完成后，此时数据观测、属性和方法已完成初始化，但尚未挂载 DOM。
+   - **用途**：可以进行数据获取、设置事件监听器等操作，可以访问组件的所有属性和方法。
+
+#### 挂载阶段
+
+3. **`beforeMount`**
+   - **触发时机**：在挂载开始之前被调用，相关的 `render` 函数首次被调用。
+   - **用途**：可以在这里进行最后的修改或调整，但此时 DOM 结构还未创建。
+
+4. **`mounted`**
+   - **触发时机**：实例挂载到 DOM 上之后被调用。
+   - **用途**：可以在这里进行与 DOM 相关的操作，例如获取 DOM 节点或进行一些 DOM 操作。
+
+#### 更新阶段
+
+5. **`beforeUpdate`**
+   - **触发时机**：数据更新时调用，发生在虚拟 DOM 重新渲染和打补丁之前。
+   - **用途**：可以在数据更新前进行一些操作，或者在不需要更新时阻止渲染。
+
+6. **`updated`**
+   - **触发时机**：由于数据更改导致的虚拟 DOM 重新渲染和打补丁之后调用。
+   - **用途**：可以在更新 DOM 之后执行一些操作，避免频繁操作 DOM。
+
+#### 销毁阶段
+
+7. **`beforeDestroy`**
+   - **触发时机**：实例销毁之前调用，此时实例仍然完全可用。
+   - **用途**：可以在这里进行一些清理工作，如清除定时器、取消事件监听等。
+
+8. **`destroyed`**
+   - **触发时机**：实例销毁后调用。此时组件的所有指令、事件监听器等均已解除绑定，所有子实例也已被销毁。
+   - **用途**：进行一些最后的清理工作，释放资源。
+
+### Vue 3.x 特有的生命周期钩子
+
+#### 组件更新阶段
+
+9. **`beforeUnmount`**
+   - **触发时机**：组件实例销毁之前调用，此时组件实例仍然完全可用，类似于 Vue 2.x 的 `beforeDestroy`。
+   - **用途**：进行一些清理工作，如清除定时器、取消事件监听等。
+
+10. **`unmounted`**
+    - **触发时机**：组件实例销毁后调用。此时组件的所有指令、事件监听器等均已解除绑定，所有子实例也已被销毁，类似于 Vue 2.x 的 `destroyed`。
+    - **用途**：进行一些最后的清理工作，释放资源。
+
+### Vue 3.x 组合 API 中的生命周期钩子
+
+在 Vue 3.x 中，可以使用组合 API 提供的生命周期钩子来替代选项 API 中的钩子函数。组合 API 中的钩子函数通常是在 `setup` 函数中使用。
+
+```javascript
+import { onBeforeMount, onMounted, onBeforeUpdate, onUpdated, onBeforeUnmount, onUnmounted } from 'vue';
+
+export default {
+  setup() {
+    onBeforeMount(() => {
+      console.log('beforeMount');
+    });
+
+    onMounted(() => {
+      console.log('mounted');
+    });
+
+    onBeforeUpdate(() => {
+      console.log('beforeUpdate');
+    });
+
+    onUpdated(() => {
+      console.log('updated');
+    });
+
+    onBeforeUnmount(() => {
+      console.log('beforeUnmount');
+    });
+
+    onUnmounted(() => {
+      console.log('unmounted');
+    });
+  }
+};
+```
+
+这些生命周期钩子在开发过程中非常有用，可以帮助我们在组件的不同阶段执行特定的逻辑，从而实现更灵活和可控的应用开发。
+
+## mixins的优先级
+
+- **数据**：递归合并，组件数据优先。
+- **生命周期钩子**：合并为数组，按顺序依次调用，先 mixin 后组件。
+- **方法和计算属性**：组件优先，覆盖 mixin。
+- **Watchers**：合并为数组，按顺序依次调用，先 mixin 后组件。
+- **自定义选项**：可以定义自定义合并策略，否则默认覆盖。
+
+
 ## 完整的导航解析流程
 
 - 导航被触发。
@@ -62,3 +166,122 @@
 4. 减少 watch 数量：避免过多的 watch，尽量使用计算属性（computed properties）。
 5. 适当的分片更新：使用 requestAnimationFrame 或 setTimeout 分片更新数据，避免长时间的阻塞。
 6. 事件代理：对于大量的事件监听，可以使用事件代理来减少内存占用。
+
+
+
+`nextTick` 是 Vue.js 提供的一个方法，用于在下次 DOM 更新循环结束之后执行延迟回调。在了解 `nextTick` 的原理之前，我们需要了解 JavaScript 的事件循环机制（Event Loop）以及 Vue 的响应式更新机制。
+
+### 事件循环和微任务
+
+JavaScript 运行环境分为同步任务和异步任务，同步任务在主线程上执行，异步任务在任务队列中等待。异步任务又分为宏任务（macrotask）和微任务（microtask）。
+
+- **宏任务**：如 `setTimeout`、`setInterval`、I/O 操作等。
+- **微任务**：如 `Promise.then`、`MutationObserver` 等。
+
+事件循环的一个周期可以概括为：
+1. 执行一个宏任务（如果有的话）。
+2. 执行所有的微任务。
+3. 更新渲染。
+4. 重复以上步骤。
+
+### Vue 的响应式更新机制
+
+Vue 的响应式系统会收集依赖，当数据变化时，会触发依赖通知（即 Watcher），然后将这些 Watcher 推入一个队列（这个队列是一个微任务队列）。为了提高性能，Vue 会对这些更新进行批处理（在同一个事件循环中合并相同的更新）。
+
+## `nextTick` 的实现原理
+
+Vue 的 `nextTick` 方法就是基于微任务实现的，它的主要作用是在 DOM 更新完成之后执行一个回调函数。其内部实现如下：
+
+1. **定义回调队列**：存储需要在下次 DOM 更新后执行的回调函数。
+2. **定义一个标志位**：标志是否已经向微任务队列添加了一个任务。
+3. **创建微任务**：根据环境选择合适的微任务实现方式。
+
+以下是一个简化版的 `nextTick` 实现：
+
+```javascript
+let callbacks = [];
+let pending = false;
+
+function flushCallbacks() {
+  pending = false;
+  const copies = callbacks.slice(0);
+  callbacks.length = 0;
+  copies.forEach(cb => cb());
+}
+
+let microTimerFunc;
+
+if (typeof Promise !== 'undefined') {
+  const p = Promise.resolve();
+  microTimerFunc = () => {
+    p.then(flushCallbacks);
+  };
+} else if (typeof MutationObserver !== 'undefined') {
+  let counter = 1;
+  const observer = new MutationObserver(flushCallbacks);
+  const textNode = document.createTextNode(String(counter));
+  observer.observe(textNode, { characterData: true });
+  microTimerFunc = () => {
+    counter = (counter + 1) % 2;
+    textNode.data = String(counter);
+  };
+} else if (typeof setImmediate !== 'undefined') {
+  microTimerFunc = () => {
+    setImmediate(flushCallbacks);
+  };
+} else {
+  microTimerFunc = () => {
+    setTimeout(flushCallbacks, 0);
+  };
+}
+
+export function nextTick(cb, ctx) {
+  let _resolve;
+  callbacks.push(() => {
+    if (cb) {
+      try {
+        cb.call(ctx);
+      } catch (e) {
+        console.error(e);
+      }
+    } else if (_resolve) {
+      _resolve(ctx);
+    }
+  });
+  if (!pending) {
+    pending = true;
+    microTimerFunc();
+  }
+
+  // 如果没有提供回调且Promise可用，返回一个Promise
+  if (!cb && typeof Promise !== 'undefined') {
+    return new Promise(resolve => {
+      _resolve = resolve;
+    });
+  }
+}
+```
+
+### `nextTick` 的工作流程
+
+1. **将回调函数推入队列**：无论是用户传入的回调函数，还是内部更新 DOM 之后需要执行的操作，都会被推入 `callbacks` 队列。
+2. **标志位**：检查 `pending` 标志，如果是 `false`，说明没有任务在等待执行，此时设置 `pending` 为 `true` 并调用 `microTimerFunc` 创建一个微任务。
+3. **执行微任务**：在微任务队列中调用 `flushCallbacks` 方法，该方法会依次执行 `callbacks` 队列中的所有回调函数，并清空队列。
+
+### 使用 `nextTick` 的场景
+
+`nextTick` 的常见使用场景包括：
+- 在数据更新之后立即获取更新后的 DOM 状态。
+- 在数据变化后执行依赖 DOM 更新的逻辑。
+
+例如：
+
+```javascript
+this.message = 'Hello, World!';
+this.$nextTick(() => {
+  // DOM 更新完成后执行
+  console.log(this.$refs.message.innerText); // 'Hello, World!'
+});
+```
+
+总结来说，Vue 的 `nextTick` 方法基于 JavaScript 的微任务机制，确保在 DOM 更新完成之后执行回调函数，从而保证了数据与视图的同步性和一致性。

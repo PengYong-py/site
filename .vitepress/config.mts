@@ -22,6 +22,8 @@ export default defineConfig({
         { text: 'css', link: '/knowledge/css' },
         { text: 'vue', link: '/knowledge/vue' },
         { text: '管理', link: '/knowledge/manage' },
+        { text: '网络', link: '/knowledge/http' },
+        
       ]}
 
     ],
