@@ -23,7 +23,8 @@ export default defineConfig({
         { text: 'vue', link: '/knowledge/vue' },
         { text: '管理', link: '/knowledge/manage' },
         { text: '网络', link: '/knowledge/http' },
-        
+        { text: 'vue2-vue3', link: '/knowledge/vue2-vue3' },
+        { text: 'vue2迁移vue3', link: '/knowledge/vue2tovue3' },
       ]}
 
     ],
